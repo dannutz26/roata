@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎡 Roata Norocului</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      min-height: 100vh;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    .star {
+      position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+      animation: twinkle var(--duration) ease-in-out infinite;
+    }
+    @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+    .container {
+      position: relative; z-index: 1; max-width: 900px;
+      margin: 0 auto; padding: 20px; text-align: center;
+    }
+
+    .header { margin-bottom: 20px; }
+    .header h1 {
+      font-size: 2.8rem; font-weight: 900;
+      background: linear-gradient(135deg, #FFD700, #FFA500, #FF6347);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 5px; letter-spacing: 2px;
+    }
+    .header p { font-size: 1.1rem; color: #b8b8d4; }
+    .price-badge {
+      display: inline-block; background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #1a1a2e; padding: 8px 24px; border-radius: 50px;
+      font-weight: 700; font-size: 1.2rem; margin-top: 10px;
+      box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+    }
+
+    .wheel-section {
+      position: relative; display: flex; flex-direction: column;
+      align-items: center; margin: 20px 0;
+    }
+    .wheel-wrapper { position: relative; width: 380px; height: 380px; }
+
+    .pointer {
+      position: absolute; top: -18px; left: 50%; transform: translateX(-50%); z-index: 10;
+      width: 0; height: 0;
+      border-left: 20px solid transparent; border-right: 20px solid transparent;
+      border-top: 40px solid #FFD700;
+      filter: drop-shadow(0 4px 10px rgba(255, 215, 0, 0.6));
+    }
+    .pointer::after {
+      content: ''; position: absolute; top: -44px; left: -8px;
+      width: 16px; height: 16px; background: #FFD700; border-radius: 50%;
+    }
+
+    canvas#wheel {
+      width: 380px; height: 380px; border-radius: 50%;
+      box-shadow: 0 0 0 8px #FFD700, 0 0 0 12px #1a1a2e,
+        0 0 0 16px rgba(255, 215, 0, 0.3), 0 0 60px rgba(255, 215, 0, 0.2);
+      transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    }
+
+    .center-circle {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 70px; height: 70px;
+      background: radial-gradient(circle, #FFD700, #FFA500); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 0.7rem; color: #1a1a2e;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); z-index: 5;
+      text-align: center; line-height: 1.2;
+    }
+
+    .spin-btn {
+      margin-top: 25px; padding: 16px 60px; font-size: 1.3rem;
+      font-weight: 700; font-family: 'Poppins', sans-serif; border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #FFD700, #FFA500, #FF6347);
+      color: #1a1a2e; cursor: pointer; letter-spacing: 1px;
+      box-shadow: 0 6px 30px rgba(255, 165, 0, 0.5);
+      transition: all 0.3s ease; text-transform: uppercase;
+    }
+    .spin-btn:hover:not(:disabled) {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 10px 40px rgba(255, 165, 0, 0.7);
+    }
+    .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .stats { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px;
+      padding: 16px 28px; min-width: 140px;
+    }
+    .stat-card .label { font-size: 0.75rem; color: #8888aa; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-card .value { font-size: 1.6rem; font-weight: 700; color: #FFD700; margin-top: 4px; }
+
+    .progress-section { margin: 15px auto; width: 100%; max-width: 500px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: #b8b8d4; margin-bottom: 6px; }
+    .progress-bar { height: 14px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; background: linear-gradient(90deg, #FFD700, #FF6347);
+      border-radius: 10px; transition: width 0.5s ease;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .winners-section { margin-top: 30px; }
+    .winners-section h2 { font-size: 1.4rem; color: #FFD700; margin-bottom: 15px; }
+    .winner-item {
+      background: rgba(255, 215, 0, 0.08); border: 1px solid rgba(255, 215, 0, 0.2);
+      border-radius: 12px; padding: 12px 20px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .winner-item .spin-info { color: #b8b8d4; font-size: 0.9rem; }
+    .winner-item .prize-info { color: #FFD700; font-weight: 700; font-size: 1.1rem; }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: linear-gradient(135deg, #1a1a3e, #2a2a5e);
+      border: 2px solid #FFD700; border-radius: 24px; padding: 40px;
+      text-align: center; max-width: 450px; width: 90%;
+      animation: modalPop 0.5s ease;
+    }
+    @keyframes modalPop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .modal.winner { box-shadow: 0 0 60px rgba(255, 215, 0, 0.6); }
+    .modal h2 { font-size: 2rem; margin-bottom: 10px; }
+    .modal p { font-size: 1.1rem; color: #b8b8d4; margin-bottom: 20px; }
+    .modal .prize-amount {
+      font-size: 3.5rem; font-weight: 900; color: #FFD700;
+      text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    }
+    .modal-btn {
+      margin-top: 20px; padding: 12px 40px; font-size: 1rem; font-weight: 600;
+      font-family: 'Poppins', sans-serif; border: none; border-radius: 50px;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #1a1a2e; cursor: pointer; transition: transform 0.2s;
+    }
+    .modal-btn:hover { transform: scale(1.05); }
+
+    .confetti-piece {
+      position: fixed; z-index: 999; pointer-events: none;
+      animation: confettiFall var(--fall-duration) linear forwards;
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(var(--rotation)); opacity: 0; }
+    }
+
+    .lose-msg { color: #b8b8d4; font-size: 1rem; margin-top: 10px; opacity: 0; transition: opacity 0.3s; }
+    .lose-msg.show { opacity: 1; }
+
+    .info-section {
+      margin-top: 40px; padding: 30px;
+      background: rgba(255, 255, 255, 0.05); border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .info-section h3 { color: #FFD700; margin-bottom: 15px; font-size: 1.2rem; }
+    .info-section .rules {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px; text-align: left;
+    }
+    .rule { display: flex; align-items: flex-start; gap: 10px; }
+    .rule .icon { font-size: 1.5rem; flex-shrink: 0; }
+    .rule .text { font-size: 0.9rem; color: #b8b8d4; }
+    .rule .text strong { color: #fff; }
+
+    @media (max-width: 500px) {
+      .header h1 { font-size: 2rem; }
+      .wheel-wrapper { width: 300px; height: 300px; }
+      canvas#wheel { width: 300px; height: 300px; }
+      .center-circle { width: 55px; height: 55px; font-size: 0.6rem; }
+      .stat-card { min-width: 100px; padding: 12px 16px; }
+      .stat-card .value { font-size: 1.2rem; }
+    }
+    .footer { margin-top: 40px; padding: 20px; color: #555; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="container">
+    <div class="header">
+      <h1>🎡 ROATA NOROCULUI</h1>
+      <p>Învârte roata și poți câștiga!</p>
+      <div class="price-badge">💰 Costul unei rotiri: 2 LEI</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="label">Total Rotiri</div>
+        <div class="value" id="totalSpins">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Până la câștig</div>
+        <div class="value" id="spinsUntilWin">100</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Câștigători</div>
+        <div class="value" id="totalWinners">0</div>
+      </div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-label">
+        <span>Progres spre premiu</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <div class="wheel-section">
+      <div class="wheel-wrapper">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="760" height="760"></canvas>
+        <div class="center-circle">ROATA<br>NOROCULUI</div>
+      </div>
+      <button class="spin-btn" id="spinBtn" onclick="spin()">🎰 ÎNVÂRTE ROATA — 2 LEI</button>
+      <p class="lose-msg" id="loseMsg"></p>
+    </div>
+
+    <div class="winners-section" id="winnersSection" style="display:none;">
+      <h2>🏆 Câștigători Recenți</h2>
+      <div id="winnersList"></div>
+    </div>
+
+    <div class="info-section">
+      <h3>📜 Cum funcționează?</h3>
+      <div class="rules">
+        <div class="rule">
+          <span class="icon">🎡</span>
+          <div class="text"><strong>Învârte roata</strong> cu doar 2 lei per rotire</div>
+        </div>
+        <div class="rule">
+          <span class="icon">💯</span>
+          <div class="text">La fiecare <strong>a 100-a rotire</strong>, cineva câștigă</div>
+        </div>
+        <div class="rule">
+          <span class="icon">💰</span>
+          <div class="text">Premiul mare: <strong>100 RON</strong> garantat!</div>
+        </div>
+        <div class="rule">
+          <span class="icon">🔄</span>
+          <div class="text">Ciclul se <strong>resetează</strong> după fiecare câștigător</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">© 2026 Roata Norocului. Joc de divertisment.</div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal winner" id="winnerModal">
+      <h2>🎉 FELICITĂRI! 🎉</h2>
+      <p>Ești al <strong id="winnerSpinNum">100</strong>-lea jucător!</p>
+      <div class="prize-amount">100 RON</div>
+      <p style="margin-top: 15px;">Ai câștigat premiul cel mare!</p>
+      <button class="modal-btn" onclick="closeModal()">SUPER! 🎊</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const c = document.getElementById('stars');
+      for (let i = 0; i < 100; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        s.style.setProperty('--duration', (2 + Math.random() * 3) + 's');
+        s.style.animationDelay = Math.random() * 3 + 's';
+        c.appendChild(s);
+      }
+    })();
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem('roata_state');
+        if (saved) return JSON.parse(saved);
+      } catch(e) {}
+      return { totalSpins: 0, currentCycle: 0, winners: [] };
+    }
+
+    function saveState() {
+      localStorage.setItem('roata_state', JSON.stringify(gameState));
+    }
+
+    let gameState = loadState();
+
+    const segments = [
+      { label: '😢', color: '#e74c3c' },
+      { label: '🍀', color: '#2ecc71' },
+      { label: '😅', color: '#3498db' },
+      { label: '⭐', color: '#9b59b6' },
+      { label: '🎯', color: '#e67e22' },
+      { label: '💎', color: '#1abc9c' },
+      { label: '🔥', color: '#e74c3c' },
+      { label: '🎁', color: '#f39c12' },
+      { label: '💫', color: '#8e44ad' },
+      { label: '🌟', color: '#27ae60' },
+      { label: '🎰', color: '#2980b9' },
+      { label: '💰', color: '#FFD700' },
+    ];
+
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const numSegments = segments.length;
+    const segAngle = (2 * Math.PI) / numSegments;
+    let currentRotation = 0;
+
+    function drawWheel() {
+      const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 10;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < numSegments; i++) {
+        const sa = i * segAngle, ea = sa + segAngle;
+        ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, sa, ea); ctx.closePath();
+        ctx.fillStyle = segments[i].color; ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2; ctx.stroke();
+
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(sa + segAngle / 2);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
+        ctx.font = 'bold 40px Poppins, sans-serif';
+        ctx.fillText(segments[i].label, r * 0.65, 14);
+        ctx.restore();
+      }
+
+      for (let i = 0; i < 36; i++) {
+        const a = (i / 36) * Math.PI * 2;
+        ctx.beginPath(); ctx.arc(cx + (r + 2) * Math.cos(a), cy + (r + 2) * Math.sin(a), 3, 0, Math.PI * 2);
+        ctx.fillStyle = i % 2 === 0 ? '#FFD700' : '#fff'; ctx.fill();
+      }
+    }
+    drawWheel();
+
+    function updateUI() {
+      const spinsUntil = 100 - gameState.currentCycle;
+      document.getElementById('totalSpins').textContent = gameState.totalSpins;
+      document.getElementById('spinsUntilWin').textContent = spinsUntil;
+      document.getElementById('totalWinners').textContent = gameState.winners.length;
+
+      const pct = (gameState.currentCycle / 100) * 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressPercent').textContent = Math.round(pct) + '%';
+
+      renderWinners();
+    }
+
+    function renderWinners() {
+      const section = document.getElementById('winnersSection');
+      const list = document.getElementById('winnersList');
+      if (gameState.winners.length > 0) {
+        section.style.display = 'block';
+        list.innerHTML = gameState.winners.slice(-10).reverse().map(w => {
+          const d = new Date(w.timestamp).toLocaleDateString('ro-RO', {
+            day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+          return `<div class="winner-item">
+            <div class="spin-info">🏆 Rotirea #${w.spinNumber} — ${d}</div>
+            <div class="prize-info">${w.prize} RON</div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    let isSpinning = false;
+
+    function spin() {
+      if (isSpinning) return;
+      isSpinning = true;
+
+      const btn = document.getElementById('spinBtn');
+      btn.disabled = true;
+      btn.textContent = '🎡 SE ÎNVÂRTE...';
+      document.getElementById('loseMsg').classList.remove('show');
+
+      gameState.totalSpins++;
+      gameState.currentCycle++;
+
+      let isWinner = false;
+      if (gameState.currentCycle >= 100) {
+        isWinner = true;
+        gameState.winners.push({
+          spinNumber: gameState.totalSpins,
+          timestamp: new Date().toISOString(),
+          prize: 100
+        });
+        gameState.currentCycle = 0;
+      }
+      saveState();
+
+      let targetSeg;
+      if (isWinner) {
+        targetSeg = 11;
+      } else {
+        do { targetSeg = Math.floor(Math.random() * numSegments); } while (targetSeg === 11);
+      }
+
+      const extraSpins = 5 + Math.floor(Math.random() * 3);
+      const segCenter = targetSeg * segAngle + segAngle / 2;
+      const targetAngle = (2 * Math.PI * extraSpins) + (2 * Math.PI - segCenter) + (3 * Math.PI / 2);
+      currentRotation += targetAngle;
+
+      canvas.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+      canvas.style.transform = `rotate(${currentRotation}rad)`;
+
+      setTimeout(() => {
+        updateUI();
+        if (isWinner) {
+          showWinnerModal(gameState.totalSpins);
+          createConfetti();
+        } else {
+          const msgs = [
+            'Mai încearcă! Norocul e aproape! 🍀',
+            'Nu de data asta... dar ești mai aproape! 💪',
+            'Continuă! Premiul te așteaptă! 🎯',
+            'Aproape! Mai rotește! ⭐',
+            'Norocul tău vine curând! 🔥',
+            'Nu renunța! Următoarea ar putea fi cea câștigătoare! 🎲',
+          ];
+          const el = document.getElementById('loseMsg');
+          el.textContent = msgs[Math.floor(Math.random() * msgs.length)];
+          el.classList.add('show');
+        }
+        isSpinning = false;
+        btn.disabled = false;
+        btn.textContent = '🎰 ÎNVÂRTE ROATA — 2 LEI';
+      }, 4200);
+    }
+
+    function showWinnerModal(spinNum) {
+      document.getElementById('winnerSpinNum').textContent = spinNum;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    function createConfetti() {
+      const colors = ['#FFD700', '#FF6347', '#00FF7F', '#1E90FF', '#FF69B4', '#FFA500', '#9B59B6'];
+      for (let i = 0; i < 100; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.top = '-5vh';
+        p.style.width = (6 + Math.random() * 8) + 'px';
+        p.style.height = (6 + Math.random() * 8) + 'px';
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        p.style.setProperty('--fall-duration', (2 + Math.random() * 3) + 's');
+        p.style.setProperty('--rotation', (360 + Math.random() * 720) + 'deg');
+        p.style.animationDelay = Math.random() * 1.5 + 's';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 6000);
+      }
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
